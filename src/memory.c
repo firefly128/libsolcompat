@@ -28,8 +28,11 @@ typedef void *(*mmap64_fn_t)(void *, size_t, int, int, int, long long);
 
 static mmap_fn_t   real_mmap   = (mmap_fn_t)mmap;
 
-/* mmap64 may or may not exist as a distinct symbol */
-extern void *mmap64(void *, size_t, int, int, int, long long);
+/*
+ * mmap64 — on Solaris 7 declared as:
+ *   caddr_t mmap64(caddr_t, size_t, int, int, int, off64_t)
+ * We cast through mmap64_fn_t to normalize the signature.
+ */
 static mmap64_fn_t real_mmap64 = (mmap64_fn_t)mmap64;
 
 /* Now include our header (which may redefine mmap/mmap64) */
