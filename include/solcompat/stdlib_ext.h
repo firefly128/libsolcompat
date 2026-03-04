@@ -1,0 +1,41 @@
+/*
+ * solcompat/stdlib_ext.h — Missing stdlib functions
+ *
+ * setenv, unsetenv, mkdtemp
+ */
+#ifndef SOLCOMPAT_STDLIB_EXT_H
+#define SOLCOMPAT_STDLIB_EXT_H
+
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef HAVE_SETENV
+int setenv(const char *name, const char *value, int overwrite);
+#endif
+
+#ifndef HAVE_UNSETENV
+int unsetenv(const char *name);
+#endif
+
+#ifndef HAVE_MKDTEMP
+char *mkdtemp(char *tmpl);
+#endif
+
+/* C99/POSIX integer conversion */
+#ifndef HAVE_STRTOIMAX
+#include <sys/types.h>
+long long strtoimax(const char *nptr, char **endptr, int base);
+#endif
+
+#ifndef HAVE_STRTOUMAX
+unsigned long long strtoumax(const char *nptr, char **endptr, int base);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SOLCOMPAT_STDLIB_EXT_H */
