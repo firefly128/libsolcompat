@@ -1,10 +1,12 @@
 /*
  * solcompat/c99_types.h — C99 integer type compatibility
  *
- * Solaris 7 has <inttypes.h> with int8_t..int64_t and PRId64 etc.
- * but lacks <stdint.h> (C99) and some scan macros.
- * GCC 4.5+ provides its own <stdint.h>, so this is mainly for
- * consistent scan format macros and intmax_t helpers.
+ * Solaris 7 has <inttypes.h> with int8_t..int64_t but lacks both
+ * <stdint.h> (C99) and the PRI*/SCN* format macros.
+ *
+ * The override/inttypes.h header now provides both PRI* and SCN*
+ * macros automatically.  This internal header is kept for backward
+ * compatibility and adds SCN* macros if included directly.
  */
 #ifndef SOLCOMPAT_C99_TYPES_H
 #define SOLCOMPAT_C99_TYPES_H

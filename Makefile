@@ -213,6 +213,7 @@ install-toolchain: all
 			"stdlib.h:solcompat/stdlib_ext.h" \
 			"string.h:solcompat/string_ext.h" \
 			"stdio.h:solcompat/stdio_ext.h" \
+			"inttypes.h:solcompat/c99_types.h" \
 		; do \
 			hdr="$${pair%%:*}"; ext="$${pair#*:}"; \
 			target="$(SYSROOT)/usr/include/$${hdr}"; \

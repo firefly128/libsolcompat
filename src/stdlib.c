@@ -7,10 +7,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 extern int solcompat_snprintf(char *, size_t, const char *, ...);
+
+/*
+ * _Exit — C99 immediate program termination.
+ *
+ * Like exit() but does NOT call atexit handlers or flush stdio buffers.
+ * Solaris 7 doesn't have it; _exit() (POSIX) does the same thing.
+ */
+void
+_Exit(int status)
+{
+    _exit(status);
+}
 
 int
 setenv(const char *name, const char *value, int overwrite)

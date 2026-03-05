@@ -24,6 +24,11 @@ int unsetenv(const char *name);
 char *mkdtemp(char *tmpl);
 #endif
 
+/* C99 _Exit — immediate termination without atexit handlers */
+#ifndef HAVE__EXIT_C99
+void _Exit(int status);
+#endif
+
 /* C99/POSIX integer conversion */
 #ifndef HAVE_STRTOIMAX
 #include <sys/types.h>
