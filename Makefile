@@ -47,7 +47,10 @@ SRCS = src/snprintf.c \
        src/random.c \
        src/stubs.c \
        src/hwcap.c \
-       src/xpg.c
+       src/xpg.c \
+       src/getopt_long.c \
+       src/ctype_compat.c \
+       src/atomic_compat.c
 
 OBJS     = $(SRCS:.c=.o)
 PIC_OBJS = $(SRCS:.c=.lo)
@@ -65,7 +68,8 @@ LIBSOCKET_OBJS = src/network.o
 LIBC_OBJS = src/snprintf.o src/string.o src/stdio.o src/stdlib.o \
             src/c99_types.o src/memory.o src/filesystem.o src/at_funcs.o \
             src/process.o src/pty.o src/poll.o src/random.o src/clock.o \
-            src/stubs.o
+            src/stubs.o src/getopt_long.o src/ctype_compat.o \
+            src/atomic_compat.o
 
 # Residual libsolcompat.a (doesn't belong in any system library)
 RESIDUAL_OBJS = src/xpg.o src/hwcap.o
@@ -81,7 +85,7 @@ libsolcompat.a: $(OBJS)
 
 # Shared library — only built on request or when linking works
 $(SONAME): $(PIC_OBJS)
-	$(CC) -shared -Wl,-h,$(SONAME) -Wl,-z,notext -o $@ $(PIC_OBJS) $(LDFLAGS) -lrt -lsocket -lnsl -lm -ldl
+	$(CC) -shared -Wl,-h,$(SONAME) -Wl,-z,notext -o $@ $(PIC_OBJS) $(LDFLAGS) -lrt -lsocket -lnsl -lresolv -lm -ldl
 
 # Compile rules
 .SUFFIXES: .c .o .lo

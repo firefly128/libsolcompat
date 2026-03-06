@@ -18,7 +18,7 @@
  * ================================================================ */
 #ifndef _INT8_T
 #define _INT8_T
-typedef signed char             int8_t;
+typedef char                    int8_t;
 #endif
 #ifndef _INT16_T
 #define _INT16_T
@@ -164,7 +164,7 @@ typedef unsigned int            uintptr_t;
  * ================================================================ */
 #ifndef _INT_LEAST8_T
 #define _INT_LEAST8_T
-typedef signed char      int_least8_t;
+typedef char             int_least8_t;
 #endif
 #ifndef _INT_LEAST16_T
 #define _INT_LEAST16_T

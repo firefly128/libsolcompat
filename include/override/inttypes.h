@@ -282,13 +282,10 @@ typedef struct {
 extern "C" {
 #endif
 
-#ifndef HAVE_IMAXABS
 long long imaxabs(long long j);
-#endif
-
-#ifndef HAVE_IMAXDIV
 imaxdiv_t imaxdiv(long long numer, long long denom);
-#endif
+intmax_t strtoimax(const char *nptr, char **endptr, int base);
+uintmax_t strtoumax(const char *nptr, char **endptr, int base);
 
 #ifdef __cplusplus
 }

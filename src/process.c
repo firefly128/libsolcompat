@@ -229,6 +229,86 @@ posix_spawn_file_actions_destroy(posix_spawn_file_actions_t *fact)
 }
 
 int
+posix_spawnattr_setflags(posix_spawnattr_t *attr, short flags)
+{
+    attr->__flags = flags;
+    return 0;
+}
+
+int
+posix_spawnattr_getflags(const posix_spawnattr_t *attr, short *flags)
+{
+    *flags = attr->__flags;
+    return 0;
+}
+
+int
+posix_spawnattr_setsigdefault(posix_spawnattr_t *attr, const sigset_t *sigdefault)
+{
+    attr->__sd = *sigdefault;
+    return 0;
+}
+
+int
+posix_spawnattr_getsigdefault(const posix_spawnattr_t *attr, sigset_t *sigdefault)
+{
+    *sigdefault = attr->__sd;
+    return 0;
+}
+
+int
+posix_spawnattr_setsigmask(posix_spawnattr_t *attr, const sigset_t *sigmask)
+{
+    attr->__ss = *sigmask;
+    return 0;
+}
+
+int
+posix_spawnattr_getsigmask(const posix_spawnattr_t *attr, sigset_t *sigmask)
+{
+    *sigmask = attr->__ss;
+    return 0;
+}
+
+int
+posix_spawnattr_setpgroup(posix_spawnattr_t *attr, pid_t pgroup)
+{
+    attr->__pgrp = pgroup;
+    return 0;
+}
+
+int
+posix_spawnattr_getpgroup(const posix_spawnattr_t *attr, pid_t *pgroup)
+{
+    *pgroup = attr->__pgrp;
+    return 0;
+}
+
+int
+posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *fact,
+    int fildes, const char *path, int oflag, mode_t mode)
+{
+    (void)fact; (void)fildes; (void)path; (void)oflag; (void)mode;
+    /* Stub — not fully implemented but satisfies link-time dependency */
+    return 0;
+}
+
+int
+posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *fact, int fildes)
+{
+    (void)fact; (void)fildes;
+    return 0;
+}
+
+int
+posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *fact,
+    int fildes, int newfildes)
+{
+    (void)fact; (void)fildes; (void)newfildes;
+    return 0;
+}
+
+int
 posix_spawn(pid_t *pid, const char *path,
             const posix_spawn_file_actions_t *file_actions,
             const posix_spawnattr_t *attrp,

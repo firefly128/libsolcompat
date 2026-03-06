@@ -37,13 +37,13 @@ int utimensat(int dirfd, const char *pathname,
 #endif
 
 /* --- flock --- */
-#ifndef HAVE_FLOCK
 #ifndef LOCK_SH
 #define LOCK_SH 1
 #define LOCK_EX 2
 #define LOCK_NB 4
 #define LOCK_UN 8
 #endif
+#ifndef HAVE_FLOCK
 int flock(int fd, int operation);
 #endif
 
@@ -64,7 +64,6 @@ DIR *fdopendir(int fd);
 #endif
 
 /* --- posix_fadvise (no-op on Solaris 7) --- */
-#ifndef HAVE_POSIX_FADVISE
 #ifndef POSIX_FADV_NORMAL
 #define POSIX_FADV_NORMAL     0
 #define POSIX_FADV_SEQUENTIAL 2
@@ -73,6 +72,7 @@ DIR *fdopendir(int fd);
 #define POSIX_FADV_WILLNEED   3
 #define POSIX_FADV_DONTNEED   4
 #endif
+#ifndef HAVE_POSIX_FADVISE
 int posix_fadvise(int fd, off_t offset, off_t len, int advice);
 #endif
 

@@ -679,8 +679,8 @@ if_indextoname(unsigned int ifindex, char *ifname)
 
     /* ifindex is 1-based (matching if_nametoindex fallback) */
     if ((int)ifindex <= n) {
-        strncpy(ifname, ifr_p[ifindex - 1].ifr_name, IF_NAMESIZE - 1);
-        ifname[IF_NAMESIZE - 1] = '\0';
+        strncpy(ifname, ifr_p[ifindex - 1].ifr_name, IFNAMSIZ - 1);
+        ifname[IFNAMSIZ - 1] = '\0';
         close(sock);
         return ifname;
     }

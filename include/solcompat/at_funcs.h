@@ -17,9 +17,17 @@
 extern "C" {
 #endif
 
+/*
+ * gnulib and many GNU tools define AT_FDCWD as -3041965
+ * (the Solaris 9+ value), NOT -100 (the Linux value).
+ * We MUST use the same value or *at() functions break.
+ */
 #ifndef AT_FDCWD
-#define AT_FDCWD             -100
+#define AT_FDCWD             (-3041965)
 #endif
+/* Also recognize the Linux value in case any code uses it */
+#define AT_FDCWD_LINUX       (-100)
+#define AT_FDCWD_ALT         AT_FDCWD_LINUX
 #ifndef AT_SYMLINK_NOFOLLOW
 #define AT_SYMLINK_NOFOLLOW  0x100
 #endif

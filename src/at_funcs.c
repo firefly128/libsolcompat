@@ -14,6 +14,13 @@
  * serialized through the mutex, which is correct but slow.
  */
 
+/* Must be defined BEFORE any includes so that stat/lstat/fstat become
+ * stat64/lstat64/fstat64 and struct stat becomes struct stat64.
+ * All callers (GNU coreutils, tar, etc.) are compiled with this flag,
+ * so their struct stat is actually struct stat64.  We must match.  */
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE_SOURCE 1
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -29,15 +36,24 @@
 extern int solcompat_snprintf(char *, size_t, const char *, ...);
 extern size_t strlcpy(char *, const char *, size_t);
 
+/*
+ * AT_FDCWD must match the value used by gnulib in GNU coreutils,
+ * tar, grep, etc. — which is -3041965 (the Solaris 9+ value).
+ * We also accept -100 (the Linux value) at runtime.
+ */
 #ifndef AT_FDCWD
-#define AT_FDCWD (-100)
+#define AT_FDCWD (-3041965)
 #endif
+#define AT_FDCWD_LINUX (-100)
 #ifndef AT_SYMLINK_NOFOLLOW
 #define AT_SYMLINK_NOFOLLOW 0x100
 #endif
 #ifndef AT_REMOVEDIR
 #define AT_REMOVEDIR 0x200
 #endif
+
+/* Check if dirfd represents "current working directory" */
+#define IS_AT_FDCWD(fd) ((fd) == AT_FDCWD || (fd) == AT_FDCWD_LINUX)
 
 static pthread_mutex_t at_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -64,7 +80,7 @@ at_enter(int dirfd, const char *path)
         return saved_fd;
     }
 
-    if (dirfd != AT_FDCWD) {
+    if (!IS_AT_FDCWD(dirfd)) {
         if (fchdir(dirfd) < 0) {
             close(saved_fd);
             pthread_mutex_unlock(&at_mutex);
@@ -83,6 +99,37 @@ at_leave(int saved_fd)
         close(saved_fd);
     }
     pthread_mutex_unlock(&at_mutex);
+}
+
+/*
+ * Resolve a dirfd to a directory path string.
+ * Solaris 7 /proc/self/fd/N entries are NOT symlinks (readlink fails),
+ * so we use fchdir + getcwd instead.
+ * Returns 0 on success, -1 on error.
+ * NOTE: Does its own open(".")/fchdir dance internally — caller must
+ *       NOT hold at_mutex (or must be prepared for nested open/fchdir).
+ */
+static int
+resolve_dirfd_path(int dirfd, char *buf, size_t bufsiz)
+{
+    int saved;
+    char *p;
+
+    saved = open(".", O_RDONLY);
+    if (saved < 0)
+        return -1;
+
+    if (fchdir(dirfd) < 0) {
+        close(saved);
+        return -1;
+    }
+
+    p = getcwd(buf, bufsiz);
+
+    fchdir(saved);
+    close(saved);
+
+    return (p != NULL) ? 0 : -1;
 }
 
 int
@@ -136,36 +183,35 @@ renameat(int olddirfd, const char *oldpath,
     int result;
 
     /* Simple case: both AT_FDCWD */
-    if (olddirfd == AT_FDCWD && newdirfd == AT_FDCWD)
+    if (IS_AT_FDCWD(olddirfd) && IS_AT_FDCWD(newdirfd))
         return rename(oldpath, newpath);
 
+    pthread_mutex_lock(&at_mutex);
+
     /* Resolve old path */
-    if (oldpath[0] == '/' || olddirfd == AT_FDCWD) {
+    if (oldpath[0] == '/' || IS_AT_FDCWD(olddirfd)) {
         strlcpy(old_full, oldpath, sizeof(old_full));
     } else {
-        char procfd[64], dirpath[1024];
-        ssize_t len;
-        solcompat_snprintf(procfd, sizeof(procfd), "/proc/self/fd/%d", olddirfd);
-        len = readlink(procfd, dirpath, sizeof(dirpath) - 1);
-        if (len < 0) return -1;
-        dirpath[len] = '\0';
+        char dirpath[1024];
+        if (resolve_dirfd_path(olddirfd, dirpath, sizeof(dirpath)) < 0) {
+            pthread_mutex_unlock(&at_mutex);
+            return -1;
+        }
         solcompat_snprintf(old_full, sizeof(old_full), "%s/%s", dirpath, oldpath);
     }
 
     /* Resolve new path */
-    if (newpath[0] == '/' || newdirfd == AT_FDCWD) {
+    if (newpath[0] == '/' || IS_AT_FDCWD(newdirfd)) {
         strlcpy(new_full, newpath, sizeof(new_full));
     } else {
-        char procfd[64], dirpath[1024];
-        ssize_t len;
-        solcompat_snprintf(procfd, sizeof(procfd), "/proc/self/fd/%d", newdirfd);
-        len = readlink(procfd, dirpath, sizeof(dirpath) - 1);
-        if (len < 0) return -1;
-        dirpath[len] = '\0';
+        char dirpath[1024];
+        if (resolve_dirfd_path(newdirfd, dirpath, sizeof(dirpath)) < 0) {
+            pthread_mutex_unlock(&at_mutex);
+            return -1;
+        }
         solcompat_snprintf(new_full, sizeof(new_full), "%s/%s", dirpath, newpath);
     }
 
-    pthread_mutex_lock(&at_mutex);
     result = rename(old_full, new_full);
     pthread_mutex_unlock(&at_mutex);
 
@@ -283,33 +329,32 @@ linkat(int olddirfd, const char *oldpath,
 
     (void)flags;
 
+    pthread_mutex_lock(&at_mutex);
+
     /* Resolve old path */
-    if (oldpath[0] == '/' || olddirfd == AT_FDCWD) {
+    if (oldpath[0] == '/' || IS_AT_FDCWD(olddirfd)) {
         strlcpy(old_full, oldpath, sizeof(old_full));
     } else {
-        char procfd[64], dirpath[1024];
-        ssize_t len;
-        solcompat_snprintf(procfd, sizeof(procfd), "/proc/self/fd/%d", olddirfd);
-        len = readlink(procfd, dirpath, sizeof(dirpath) - 1);
-        if (len < 0) return -1;
-        dirpath[len] = '\0';
+        char dirpath[1024];
+        if (resolve_dirfd_path(olddirfd, dirpath, sizeof(dirpath)) < 0) {
+            pthread_mutex_unlock(&at_mutex);
+            return -1;
+        }
         solcompat_snprintf(old_full, sizeof(old_full), "%s/%s", dirpath, oldpath);
     }
 
     /* Resolve new path */
-    if (newpath[0] == '/' || newdirfd == AT_FDCWD) {
+    if (newpath[0] == '/' || IS_AT_FDCWD(newdirfd)) {
         strlcpy(new_full, newpath, sizeof(new_full));
     } else {
-        char procfd[64], dirpath[1024];
-        ssize_t len;
-        solcompat_snprintf(procfd, sizeof(procfd), "/proc/self/fd/%d", newdirfd);
-        len = readlink(procfd, dirpath, sizeof(dirpath) - 1);
-        if (len < 0) return -1;
-        dirpath[len] = '\0';
+        char dirpath[1024];
+        if (resolve_dirfd_path(newdirfd, dirpath, sizeof(dirpath)) < 0) {
+            pthread_mutex_unlock(&at_mutex);
+            return -1;
+        }
         solcompat_snprintf(new_full, sizeof(new_full), "%s/%s", dirpath, newpath);
     }
 
-    pthread_mutex_lock(&at_mutex);
     result = link(old_full, new_full);
     pthread_mutex_unlock(&at_mutex);
 
