@@ -9,6 +9,7 @@
 #include_next <fcntl.h>
 
 #include <solcompat/filesystem.h>   /* POSIX_FADV_*, posix_fadvise */
+#include <solcompat/at_funcs.h>     /* AT_FDCWD, AT_SYMLINK_NOFOLLOW, fstatat etc */
 
 /* O_CLOEXEC doesn't exist on Solaris 7 -- define a placeholder
  * value so bit-test code compiles; pipe2/dup3/mkostemp implement
