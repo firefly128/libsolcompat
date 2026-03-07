@@ -39,6 +39,18 @@ long long strtoimax(const char *nptr, char **endptr, int base);
 unsigned long long strtoumax(const char *nptr, char **endptr, int base);
 #endif
 
+/*
+ * Solaris 7 stdlib.h hides strtoll/strtoull/atoll behind __STDC__==0,
+ * but GCC always defines __STDC__ as 1.  The functions exist in libc;
+ * they just need declarations.
+ */
+long long strtoll(const char *nptr, char **endptr, int base);
+unsigned long long strtoull(const char *nptr, char **endptr, int base);
+long long atoll(const char *nptr);
+
+/* C99 strtof — not in Solaris 7 libc at all; implemented in stdlib.c */
+float strtof(const char *nptr, char **endptr);
+
 #ifdef __cplusplus
 }
 #endif

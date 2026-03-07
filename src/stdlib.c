@@ -135,3 +135,15 @@ mkdtemp(char *tmpl)
     errno = EEXIST;
     return NULL;
 }
+
+/*
+ * strtof — C99 string-to-float conversion.
+ * Solaris 7 libc has strtod() but not strtof().
+ * This is a simple wrapper; precision is limited to what strtod provides,
+ * which is fine since float is strictly narrower than double.
+ */
+float
+strtof(const char *nptr, char **endptr)
+{
+    return (float)strtod(nptr, endptr);
+}

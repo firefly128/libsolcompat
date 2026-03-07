@@ -245,6 +245,17 @@ long int lroundl(long double x);
 long long int llrintl(long double x);
 long long int llroundl(long double x);
 
+/* ================================================================
+ * C99 complex math
+ * Solaris 7 libm has no complex math support at all.
+ * ================================================================ */
+
+/*
+ * cexp — complex exponential.  Used by libsvgtiny for SVG arc paths.
+ * cexp(a+bi) = e^a * (cos(b) + i*sin(b))
+ */
+double _Complex cexp(double _Complex z);
+
 #ifdef __cplusplus
 }
 #endif
