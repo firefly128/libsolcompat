@@ -13,6 +13,16 @@
 #ifndef _SOLCOMPAT_OVERRIDE_STDINT_H
 #define _SOLCOMPAT_OVERRIDE_STDINT_H
 
+/*
+ * Prevent sys/int_types.h from being included after us.  That header
+ * redefines intmax_t as int32_t under __STRICT_ANSI__ (i.e. -std=c99),
+ * conflicting with our correct C99 long long definition.  Since we
+ * provide a complete superset of its types, suppress it entirely.
+ */
+#ifndef _SYS_INT_TYPES_H
+#define _SYS_INT_TYPES_H
+#endif
+
 /* ================================================================
  * Exact-width integer types -- defined unconditionally
  * ================================================================ */
