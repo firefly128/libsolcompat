@@ -15,7 +15,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <time.h>
 #include <signal.h>
 #include <errno.h>
@@ -737,6 +739,197 @@ static void test_ipv6_sockopts_defined(void)
     PASS();
 }
 
+/* ===== qsort_r tests ===== */
+
+static int compare_ints_ascending(const void *left_element,
+                                  const void *right_element,
+                                  void *context_arg)
+{
+    int left_value  = *(const int *)left_element;
+    int right_value = *(const int *)right_element;
+    (void)context_arg;
+    return left_value - right_value;
+}
+
+static int compare_ints_with_direction(const void *left_element,
+                                       const void *right_element,
+                                       void *direction_flag)
+{
+    int left_value  = *(const int *)left_element;
+    int right_value = *(const int *)right_element;
+    int multiplier  = *(int *)direction_flag;
+    return multiplier * (left_value - right_value);
+}
+
+static void test_qsort_r_ascending(void)
+{
+    int values[] = { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+    int element_count = 9;
+    int context_unused = 0;
+    int index;
+
+    TEST(qsort_r_ascending);
+    qsort_r(values, (size_t)element_count, sizeof(int),
+            compare_ints_ascending, &context_unused);
+    for (index = 0; index < element_count - 1; index++)
+        ASSERT(values[index] <= values[index + 1], "not sorted ascending");
+    PASS();
+}
+
+static void test_qsort_r_descending(void)
+{
+    int values[] = { 5, 3, 8, 1, 9, 2, 7, 4, 6 };
+    int element_count = 9;
+    int direction = -1;   /* negative multiplier → descending */
+    int index;
+
+    TEST(qsort_r_descending);
+    qsort_r(values, (size_t)element_count, sizeof(int),
+            compare_ints_with_direction, &direction);
+    for (index = 0; index < element_count - 1; index++)
+        ASSERT(values[index] >= values[index + 1], "not sorted descending");
+    PASS();
+}
+
+static void test_qsort_r_large(void)
+{
+    /* Sort an array larger than the insertion-sort cutoff (12 elements)
+     * to exercise the quicksort path.                                   */
+    int values[64];
+    int expected[64];
+    int element_count = 64;
+    int context_unused = 0;
+    int index;
+
+    TEST(qsort_r_large);
+    for (index = 0; index < element_count; index++)
+        values[index] = element_count - index;   /* reverse-sorted input */
+    for (index = 0; index < element_count; index++)
+        expected[index] = index + 1;
+
+    qsort_r(values, (size_t)element_count, sizeof(int),
+            compare_ints_ascending, &context_unused);
+    for (index = 0; index < element_count; index++)
+        ASSERT(values[index] == expected[index], "wrong value after sort");
+    PASS();
+}
+
+static void test_qsort_r_single_element(void)
+{
+    int single_value = 42;
+    int context_unused = 0;
+
+    TEST(qsort_r_single_element);
+    qsort_r(&single_value, 1, sizeof(int),
+            compare_ints_ascending, &context_unused);
+    ASSERT(single_value == 42, "single element changed");
+    PASS();
+}
+
+/* ===== execvpe tests ===== */
+
+static void test_execvpe_direct_path(void)
+{
+    pid_t child_pid;
+    int   wait_status;
+    char *child_argv[] = { "/bin/true", NULL };
+    char *child_env[]  = { "PATH=/bin:/usr/bin", NULL };
+
+    TEST(execvpe_direct_path);
+    child_pid = fork();
+    ASSERT(child_pid >= 0, "fork failed");
+
+    if (child_pid == 0) {
+        /* Child: execute /bin/true directly (contains a slash — no search) */
+        execvpe("/bin/true", child_argv, child_env);
+        _exit(127);
+    }
+
+    waitpid(child_pid, &wait_status, 0);
+    ASSERT(WIFEXITED(wait_status), "child did not exit normally");
+    ASSERT(WEXITSTATUS(wait_status) == 0, "exit status not 0");
+    PASS();
+}
+
+static void test_execvpe_path_search(void)
+{
+    pid_t  child_pid;
+    int    wait_status;
+    char  *child_argv[] = { "true", NULL };
+    char  *child_env[]  = { "PATH=/bin:/usr/bin", NULL };
+
+    TEST(execvpe_path_search);
+    child_pid = fork();
+    ASSERT(child_pid >= 0, "fork failed");
+
+    if (child_pid == 0) {
+        /* Child: search for "true" via PATH in the provided environment */
+        execvpe("true", child_argv, child_env);
+        _exit(127);
+    }
+
+    waitpid(child_pid, &wait_status, 0);
+    ASSERT(WIFEXITED(wait_status), "child did not exit normally");
+    ASSERT(WEXITSTATUS(wait_status) == 0, "exit status not 0");
+    PASS();
+}
+
+static void test_execvpe_not_found(void)
+{
+    pid_t child_pid;
+    int   wait_status;
+    char *child_argv[] = { "nonexistent_command_xyzzy", NULL };
+    char *child_env[]  = { "PATH=/bin:/usr/bin", NULL };
+
+    TEST(execvpe_not_found);
+    child_pid = fork();
+    ASSERT(child_pid >= 0, "fork failed");
+
+    if (child_pid == 0) {
+        execvpe("nonexistent_command_xyzzy", child_argv, child_env);
+        _exit(127);   /* expected: command not found */
+    }
+
+    waitpid(child_pid, &wait_status, 0);
+    ASSERT(WIFEXITED(wait_status), "child did not exit normally");
+    ASSERT(WEXITSTATUS(wait_status) == 127, "should exit 127 for not-found");
+    PASS();
+}
+
+/* ===== dirfd tests ===== */
+
+static void test_dirfd_valid(void)
+{
+    DIR        *dir_stream;
+    int         returned_fd;
+    struct stat fd_stat;
+
+    TEST(dirfd_valid);
+    dir_stream = opendir("/tmp");
+    ASSERT(dir_stream != NULL, "opendir /tmp failed");
+
+    returned_fd = dirfd(dir_stream);
+    ASSERT(returned_fd >= 0, "dirfd returned negative value");
+
+    /* The fd must be a valid, open file descriptor */
+    ASSERT(fstat(returned_fd, &fd_stat) == 0, "fstat on dirfd failed");
+    ASSERT(S_ISDIR(fd_stat.st_mode), "fd is not a directory");
+
+    closedir(dir_stream);
+    PASS();
+}
+
+static void test_dirfd_null(void)
+{
+    int result;
+
+    TEST(dirfd_null);
+    result = dirfd(NULL);
+    ASSERT(result == -1, "dirfd(NULL) should return -1");
+    ASSERT(errno == EINVAL, "dirfd(NULL) should set EINVAL");
+    PASS();
+}
+
 /* ===== Main ===== */
 int
 main(void)
@@ -766,6 +959,10 @@ main(void)
     printf("\n[stdlib]\n");
     test_setenv_unsetenv();
     test_mkdtemp();
+    test_qsort_r_ascending();
+    test_qsort_r_descending();
+    test_qsort_r_large();
+    test_qsort_r_single_element();
 
     printf("\n[clock]\n");
     test_clock_monotonic();
@@ -785,6 +982,8 @@ main(void)
     printf("\n[filesystem]\n");
     test_flock();
     test_scandir();
+    test_dirfd_valid();
+    test_dirfd_null();
 
     printf("\n[at_funcs]\n");
     test_openat();
@@ -793,6 +992,9 @@ main(void)
     printf("\n[process]\n");
     test_pipe2();
     test_dup3();
+    test_execvpe_direct_path();
+    test_execvpe_path_search();
+    test_execvpe_not_found();
 
     printf("\n[random]\n");
     test_getentropy();

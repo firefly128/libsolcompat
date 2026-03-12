@@ -16,6 +16,7 @@
 
 CC       ?= gcc
 AR       ?= ar
+RANLIB   ?= ranlib
 CFLAGS   ?= -O2 -Wall -Wextra -Wno-unused-parameter
 CPPFLAGS ?= -D_REENTRANT -I$(CURDIR)/include
 LDFLAGS  ?=

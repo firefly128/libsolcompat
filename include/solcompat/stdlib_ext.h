@@ -51,6 +51,23 @@ long long atoll(const char *nptr);
 /* C99 strtof — not in Solaris 7 libc at all; implemented in stdlib.c */
 float strtof(const char *nptr, char **endptr);
 
+/*
+ * qsort_r — reentrant sort with caller-supplied context argument.
+ *
+ * Uses the GNU/glibc signature where the context pointer is the last
+ * argument to both qsort_r() and the comparison function:
+ *
+ *   compare_fn(left_element, right_element, context_arg) → int
+ *
+ * Solaris 7 has qsort() but not qsort_r().  Implemented without any
+ * global state so it is safe to call from multiple threads.
+ */
+#ifndef HAVE_QSORT_R
+void qsort_r(void *base, size_t element_count, size_t element_size,
+             int (*compare_fn)(const void *, const void *, void *),
+             void *context_arg);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

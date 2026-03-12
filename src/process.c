@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <signal.h>
+#include <limits.h>
 
 #include "solcompat/process.h"
 
@@ -333,6 +334,103 @@ posix_spawn(pid_t *pid, const char *path,
     if (pid)
         *pid = child;
     return 0;
+}
+
+/* -----------------------------------------------------------------------
+ * execvpe — execute a program, searching PATH from the provided environment.
+ *
+ * Solaris 7 has execve() (direct path, explicit environment) and execvp()
+ * (PATH search, inherits environment) but not execvpe() (PATH search with
+ * an explicit environment).  GNU tools increasingly depend on execvpe() to
+ * spawn children in a clean, known environment.
+ *
+ * Algorithm:
+ *   1. If filename contains a '/', execute directly via execve() — no search.
+ *   2. Otherwise, find PATH in envp (the child's environment, not the
+ *      caller's), falling back to the caller's PATH and then the default.
+ *   3. Walk each colon-separated directory component, build a candidate
+ *      path, and attempt execve().  EACCES is remembered but the search
+ *      continues; any other non-ENOENT/ENOTDIR error terminates the loop.
+ * ----------------------------------------------------------------------- */
+int
+execvpe(const char *filename, char *const argv[], char *const envp[])
+{
+    const char *search_path;
+    const char *path_env_value;
+    const char *component_start;
+    const char *component_end;
+    size_t      filename_length;
+    size_t      dir_length;
+    char        candidate_path[PATH_MAX];
+    int         saved_errno;
+    int         env_index;
+
+    /* If filename contains a slash, execute directly without PATH search */
+    if (strchr(filename, '/') != NULL)
+        return execve(filename, argv, envp);
+
+    filename_length = strlen(filename);
+
+    /* Search for PATH in the provided environment (envp), not the caller's */
+    path_env_value = NULL;
+    if (envp != NULL) {
+        for (env_index = 0; envp[env_index] != NULL; env_index++) {
+            if (strncmp(envp[env_index], "PATH=", 5) == 0) {
+                path_env_value = envp[env_index] + 5;
+                break;
+            }
+        }
+    }
+
+    /* Fall back to caller's PATH, then a sensible built-in default */
+    if (path_env_value != NULL)
+        search_path = path_env_value;
+    else
+        search_path = getenv("PATH");
+
+    if (search_path == NULL || search_path[0] == '\0')
+        search_path = "/usr/bin:/bin";
+
+    saved_errno     = 0;
+    component_start = search_path;
+
+    while (component_start != NULL) {
+        component_end = strchr(component_start, ':');
+        dir_length    = (component_end != NULL)
+                        ? (size_t)(component_end - component_start)
+                        : strlen(component_start);
+
+        if (dir_length == 0) {
+            /* Empty component means the current working directory */
+            if (filename_length + 3 <= sizeof(candidate_path)) {
+                candidate_path[0] = '.';
+                candidate_path[1] = '/';
+                memcpy(candidate_path + 2, filename, filename_length + 1);
+                execve(candidate_path, argv, envp);
+                if (errno == EACCES)
+                    saved_errno = EACCES;
+                else if (errno != ENOENT && errno != ENOTDIR)
+                    break;
+            }
+        } else if (dir_length + 1 + filename_length + 1 <= sizeof(candidate_path)) {
+            memcpy(candidate_path, component_start, dir_length);
+            candidate_path[dir_length] = '/';
+            memcpy(candidate_path + dir_length + 1, filename, filename_length + 1);
+            execve(candidate_path, argv, envp);
+            if (errno == EACCES)
+                saved_errno = EACCES;
+            else if (errno != ENOENT && errno != ENOTDIR)
+                break;
+        }
+
+        component_start = (component_end != NULL) ? component_end + 1 : NULL;
+    }
+
+    /* Report EACCES if that was the only kind of failure encountered */
+    if (saved_errno != 0)
+        errno = saved_errno;
+
+    return -1;
 }
 
 int

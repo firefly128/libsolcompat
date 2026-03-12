@@ -1,0 +1,99 @@
+# libsolcompat CI
+#
+# Builds the library cross-compiled for SPARC Solaris 7 and creates a
+# versioned GitHub Release on tag push.
+#
+# PREREQUISITE: The sparc-toolchain Docker image must be published to GHCR
+# before this workflow will pass.  See sparc-build-host for how to build
+# and publish ghcr.io/firefly128/sparc-toolchain.
+#
+# Cross-compiler location inside the container:
+#   /opt/cross/bin/sparc-sun-solaris2.7-{gcc,ar,ranlib,...}
+# Solaris 7 sysroot inside the container:
+#   /opt/sysroot-build
+
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ------------------------------------------------------------------ #
+  # cross-compile: build libsolcompat.a targeting SPARC Solaris 7       #
+  # ------------------------------------------------------------------ #
+  cross-compile:
+    name: Cross-compile for SPARC Solaris 7
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/firefly128/sparc-toolchain:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build static library
+        run: |
+          make \
+            CC=sparc-sun-solaris2.7-gcc \
+            AR=sparc-sun-solaris2.7-ar \
+            RANLIB=sparc-sun-solaris2.7-ranlib \
+            CFLAGS="-O2 --sysroot=/opt/sysroot-build -mcpu=v7 -D__EXTENSIONS__ -Wall -Wextra -Wno-unused-parameter"
+
+      - name: Verify library symbol table
+        run: |
+          sparc-sun-solaris2.7-nm libsolcompat.a | grep -c ' T ' \
+            | xargs -I{} echo "Exported {} text symbols"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: libsolcompat-sparc-solaris7-${{ github.sha }}
+          path: |
+            libsolcompat.a
+            include/
+
+  # ------------------------------------------------------------------ #
+  # release: create GitHub Release on tag push (vX.Y.Z)                #
+  # ------------------------------------------------------------------ #
+  release:
+    name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: cross-compile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: libsolcompat-sparc-solaris7-${{ github.sha }}
+          path: release-staging/
+
+      - name: Package release tarball
+        run: |
+          RELEASE_VERSION=${GITHUB_REF_NAME#v}
+          cp README.md LICENSE release-staging/
+          tar czf "libsolcompat-${RELEASE_VERSION}-sparc-solaris7.tar.gz" \
+            -C release-staging .
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> "$GITHUB_ENV"
+
+      - name: Create GitHub release and upload tarball
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "libsolcompat ${RELEASE_VERSION}" \
+            --notes "POSIX/C99/C11 compatibility library for Solaris 7 SPARC.
+See README.md for installation and usage." \
+            "libsolcompat-${RELEASE_VERSION}-sparc-solaris7.tar.gz"

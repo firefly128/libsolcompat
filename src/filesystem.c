@@ -330,6 +330,26 @@ fdopendir(int fd)
     return opendir(dirpath);
 }
 
+/*
+ * dirfd — return the file descriptor underlying a DIR stream.
+ *
+ * Solaris 7 does not provide dirfd() as a libc function, but its DIR
+ * typedef (in <dirent.h>) documents dd_fd as the file descriptor field.
+ * This implementation simply returns that value.
+ *
+ * POSIX requires EBADF when dirp is invalid; we use EINVAL for NULL since
+ * we cannot distinguish a closed DIR from a valid one without dd_fd itself.
+ */
+int
+dirfd(DIR *dir_stream)
+{
+    if (dir_stream == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+    return dir_stream->dd_fd;
+}
+
 int
 posix_fadvise(int fd, off_t offset, off_t len, int advice)
 {

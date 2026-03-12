@@ -63,6 +63,18 @@ int alphasort(const struct dirent **a, const struct dirent **b);
 DIR *fdopendir(int fd);
 #endif
 
+/* --- dirfd --- */
+/*
+ * dirfd() returns the file descriptor underlying a DIR stream.
+ *
+ * Solaris 7's DIR structure has dd_fd as a documented first member, but
+ * dirfd() itself is not provided as a libc function.  Our implementation
+ * simply returns dirp->dd_fd.
+ */
+#ifndef HAVE_DIRFD
+int dirfd(DIR *dir_stream);
+#endif
+
 /* --- posix_fadvise (no-op on Solaris 7) --- */
 #ifndef POSIX_FADV_NORMAL
 #define POSIX_FADV_NORMAL     0
