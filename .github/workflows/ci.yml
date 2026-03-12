@@ -3,9 +3,9 @@
 # Builds the library cross-compiled for SPARC Solaris 7 and creates a
 # versioned GitHub Release on tag push.
 #
-# Runs on self-hosted runners labelled 'sparc-build' (primary: .244, backup: .212).
-# The sparc-toolchain image is cached locally on both runners; docker run uses
-# --pull=missing so it never tries to download what's already present.
+# cross-compile and qemu-test both run on sparc-qemu (.244 only) until the
+# self-contained ghcr.io/firefly128/sparc-toolchain image is published.
+# After that, cross-compile can move back to sparc-build (both .244 and .212).
 #
 # Cross-compiler location inside the container:
 #   /opt/cross/bin/sparc-sun-solaris2.7-{gcc,ar,ranlib,...}
@@ -27,7 +27,7 @@ jobs:
   # ------------------------------------------------------------------ #
   cross-compile:
     name: Cross-compile for SPARC Solaris 7
-    runs-on: [self-hosted, sparc-build]
+    runs-on: [self-hosted, sparc-qemu]
 
     steps:
       - name: Check out source
@@ -170,7 +170,7 @@ jobs:
     name: Create GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: cross-compile
-    runs-on: [self-hosted, sparc-build]
+    runs-on: [self-hosted, sparc-qemu]
     permissions:
       contents: write
 
