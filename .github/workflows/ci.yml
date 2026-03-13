@@ -111,8 +111,7 @@ jobs:
               -lrt -lsocket -lnsl -lresolv -ldl -lm
 
       - name: Start Solaris VM
-        working-directory: ${{ env.SPARC_BUILD_HOST }}
-        run: docker compose --profile runtime up -d
+        run: cd "$SPARC_BUILD_HOST" && docker compose --profile runtime up -d
 
       - name: Wait for SSH ready
         # runtime-boot.expect installs the container's generated key into
@@ -159,9 +158,8 @@ jobs:
 
       - name: Stop Solaris VM
         if: always()
-        working-directory: ${{ env.SPARC_BUILD_HOST }}
         run: |
-          docker compose --profile runtime down
+          cd "$SPARC_BUILD_HOST" && docker compose --profile runtime down
           rm -f /tmp/solaris-ci-key
 
   # ------------------------------------------------------------------ #
