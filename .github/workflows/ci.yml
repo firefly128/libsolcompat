@@ -104,7 +104,7 @@ jobs:
             sparc-sun-solaris2.7-gcc \
               --sysroot=/opt/sysroot-build \
               -mcpu=v7 -D__EXTENSIONS__ \
-              -Iinclude \
+              -Iinclude -Iinclude/override \
               -o test_all_sparc \
               tests/test_all.c \
               artifacts/libsolcompat.a \
