@@ -280,7 +280,8 @@ install-sysroot: all
 # Tests (run on Solaris target or under QEMU)
 # ====================================================================
 test: all
-	cd tests && $(CC) $(CPPFLAGS) $(CFLAGS) -o test_all test_all.c \
+	cd tests && $(CC) $(CPPFLAGS) $(CFLAGS) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE=1 \
+		-o test_all test_all.c \
 		-L$(CURDIR) -lsolcompat -lrt -lsocket -lnsl -lm && ./test_all
 
 # ====================================================================

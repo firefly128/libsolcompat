@@ -121,7 +121,7 @@ jobs:
             ghcr.io/sunstorm-project/sparc-toolchain:latest \
             sparc-sun-solaris2.7-gcc \
               --sysroot=/opt/sysroot-build \
-              -mcpu=v7 -D__EXTENSIONS__ \
+              -mcpu=v7 -D__EXTENSIONS__ -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE=1 \
               -Iinclude -Iinclude/override \
               -o test_all_sparc \
               tests/test_all.c \
