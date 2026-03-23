@@ -4,7 +4,7 @@
 # versioned GitHub Release on tag push.
 #
 # cross-compile and qemu-test both run on sparc-qemu (.244 only) until the
-# self-contained ghcr.io/firefly128/sparc-toolchain image is published.
+# self-contained ghcr.io/sunstorm-project/sparc-toolchain image is published.
 # After that, cross-compile can move back to sparc-build (both .244 and .212).
 #
 # Cross-compiler location inside the container:
@@ -43,7 +43,7 @@ jobs:
             -v "$SPARC_BUILD_HOST/sysroot:/opt/sysroot-build:ro" \
             -e PATH=/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
             -w /work \
-            ghcr.io/firefly128/sparc-toolchain:latest \
+            ghcr.io/sunstorm-project/sparc-toolchain:latest \
             make \
               CC=sparc-sun-solaris2.7-gcc \
               AR=sparc-sun-solaris2.7-ar \
@@ -57,7 +57,7 @@ jobs:
             -v sparc-build-host_cross-build-cross:/opt/cross:ro \
             -e PATH=/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
             -w /work \
-            ghcr.io/firefly128/sparc-toolchain:latest \
+            ghcr.io/sunstorm-project/sparc-toolchain:latest \
             sh -c 'sparc-sun-solaris2.7-nm libsolcompat.a | grep -c " T " \
               | xargs -I{} echo "Exported {} text symbols"'
 
@@ -92,7 +92,7 @@ jobs:
       - name: Check out sparc-build-host (for QEMU scripts)
         uses: actions/checkout@v4
         with:
-          repository: firefly128/sparc-build-host
+          repository: Sunstorm-Project/sparc-build-host
           path: sparc-build-host/
 
       - name: Sync QEMU test scripts to install path
@@ -115,7 +115,7 @@ jobs:
             -v "$SPARC_BUILD_HOST/sysroot:/opt/sysroot-build:ro" \
             -e PATH=/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
             -w /work \
-            ghcr.io/firefly128/sparc-toolchain:latest \
+            ghcr.io/sunstorm-project/sparc-toolchain:latest \
             sparc-sun-solaris2.7-gcc \
               --sysroot=/opt/sysroot-build \
               -mcpu=v7 -D__EXTENSIONS__ \
