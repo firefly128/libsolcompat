@@ -164,7 +164,7 @@ jobs:
           docker exec solaris-runtime \
             expect /tests/ci-run-test.expect \
               /tmp/test_all_sparc \
-              /export/home/test_all_sparc
+              /tmp/test_all_sparc
 
       - name: Stop Solaris VM
         if: always()
