@@ -82,6 +82,8 @@ jobs:
     needs: cross-compile
     runs-on: [self-hosted, sparc-qemu]
     timeout-minutes: 35
+    permissions:
+      packages: read
     env:
       SPARC_BUILD_HOST: ${{ vars.SPARC_BUILD_HOST || '/opt/sparc/sparc-build-host' }}
 
@@ -125,6 +127,9 @@ jobs:
               tests/test_all.c \
               artifacts/libsolcompat.a \
               -lrt -lsocket -lnsl -lresolv -ldl -lm
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Start Solaris VM
         run: cd "$SPARC_BUILD_HOST" && docker compose --profile runtime up -d
