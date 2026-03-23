@@ -158,11 +158,15 @@ jobs:
         # QEMU forwards container port 2222 → Solaris port 22.
         run: |
           docker exec solaris-runtime \
-            scp -P 2222 -o StrictHostKeyChecking=no -o BatchMode=yes \
+            scp -O -P 2222 -o StrictHostKeyChecking=no -o BatchMode=yes \
+              -o PubkeyAcceptedKeyTypes=+ssh-rsa \
+              -o HostKeyAlgorithms=+ssh-rsa \
               -i /root/.ssh/id_rsa \
               /tmp/test_all_sparc root@localhost:/tmp/test_all_sparc
           docker exec solaris-runtime \
             ssh -p 2222 -o StrictHostKeyChecking=no -o BatchMode=yes \
+              -o PubkeyAcceptedKeyTypes=+ssh-rsa \
+              -o HostKeyAlgorithms=+ssh-rsa \
               -i /root/.ssh/id_rsa \
               root@localhost \
               "chmod +x /tmp/test_all_sparc && /tmp/test_all_sparc"
