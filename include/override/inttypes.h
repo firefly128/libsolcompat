@@ -1,15 +1,20 @@
 /*
- * override/inttypes.h — C99 format macros for Solaris 7
+ * override/inttypes.h — C99 integer types + format macros for Solaris 7
  *
- * Solaris 7's <inttypes.h> provides the exact-width integer types
- * (int8_t..int64_t, uint8_t..uint64_t) but lacks the C99 printf/scanf
- * format macros (PRId32, SCNu64, etc.).  This override wraps the
- * system header and fills in the gaps.
+ * Solaris 7's <inttypes.h> guards its type definitions behind
+ *   #if __STDC__ - 0 == 0
+ * which is false under GCC (where __STDC__ == 1), so it provides NO
+ * integer types in standard C mode.  This override pulls in our
+ * override/stdint.h first to ensure int8_t..int64_t and friends are
+ * always defined, then chains to the system header for PRI*/SCN* macros.
  *
- * Part of libsolcompat — https://github.com/firefly128/libsolcompat
+ * Part of libsolcompat — https://github.com/Sunstorm-Project/libsolcompat
  */
 #ifndef _SOLCOMPAT_OVERRIDE_INTTYPES_H
 #define _SOLCOMPAT_OVERRIDE_INTTYPES_H
+
+/* Ensure all C99 integer types are defined before the system header runs. */
+#include <stdint.h>
 
 /* Pull in the real Solaris 7 /usr/include/inttypes.h */
 #include_next <inttypes.h>
