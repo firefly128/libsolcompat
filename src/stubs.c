@@ -228,9 +228,14 @@ pthread_condattr_getclock(const pthread_condattr_t *restrict attribute,
 int
 pthread_condattr_setclock(pthread_condattr_t *attribute, int clock_id)
 {
+    /*
+     * Solaris 7 pthreads have no per-clock condition variable support.
+     * Accept any valid POSIX clock ID and silently succeed — conditions
+     * will use CLOCK_REALTIME regardless.  libuv and other software call
+     * this with CLOCK_MONOTONIC and abort if it returns EINVAL.
+     */
     (void)attribute;
-    if (clock_id != 0) /* only CLOCK_REALTIME supported */
-        return 22; /* EINVAL */
+    (void)clock_id;
     return 0;
 }
 #endif
