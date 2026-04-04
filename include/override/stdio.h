@@ -19,15 +19,18 @@
  * C99 variadic scanf functions.
  * Solaris 7 libc may have these internally but doesn't declare them.
  * Provide declarations so C99-conformant code compiles.
+ *
+ * Use __restrict__ instead of restrict — C++ doesn't have restrict,
+ * but GCC/G++ accept __restrict__ in both C and C++ modes.
  */
 #include <stdarg.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 #ifndef HAVE_VFSCANF
-extern int vfscanf(FILE *restrict, const char *restrict, va_list);
-extern int vscanf(const char *restrict, va_list);
-extern int vsscanf(const char *restrict, const char *restrict, va_list);
+extern int vfscanf(FILE *__restrict__, const char *__restrict__, va_list);
+extern int vscanf(const char *__restrict__, va_list);
+extern int vsscanf(const char *__restrict__, const char *__restrict__, va_list);
 #endif
 #ifdef __cplusplus
 }
