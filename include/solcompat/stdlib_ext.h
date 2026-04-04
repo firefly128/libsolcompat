@@ -12,32 +12,17 @@
 extern "C" {
 #endif
 
-#ifndef HAVE_SETENV
 int setenv(const char *name, const char *value, int overwrite);
-#endif
-
-#ifndef HAVE_UNSETENV
 int unsetenv(const char *name);
-#endif
-
-#ifndef HAVE_MKDTEMP
 char *mkdtemp(char *tmpl);
-#endif
 
 /* C99 _Exit — immediate termination without atexit handlers */
-#ifndef HAVE__EXIT_C99
 void _Exit(int status);
-#endif
 
 /* C99/POSIX integer conversion */
-#ifndef HAVE_STRTOIMAX
 #include <sys/types.h>
 long long strtoimax(const char *nptr, char **endptr, int base);
-#endif
-
-#ifndef HAVE_STRTOUMAX
 unsigned long long strtoumax(const char *nptr, char **endptr, int base);
-#endif
 
 /*
  * Solaris 7 stdlib.h hides strtoll/strtoull/atoll behind __STDC__==0,
@@ -62,11 +47,9 @@ float strtof(const char *nptr, char **endptr);
  * Solaris 7 has qsort() but not qsort_r().  Implemented without any
  * global state so it is safe to call from multiple threads.
  */
-#ifndef HAVE_QSORT_R
 void qsort_r(void *base, size_t element_count, size_t element_size,
              int (*compare_fn)(const void *, const void *, void *),
              void *context_arg);
-#endif
 
 #ifdef __cplusplus
 }

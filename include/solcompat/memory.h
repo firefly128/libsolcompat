@@ -13,17 +13,11 @@
 extern "C" {
 #endif
 
-#ifndef HAVE_POSIX_MEMALIGN
 int posix_memalign(void **memptr, size_t alignment, size_t size);
-#endif
 
-#ifndef HAVE_ALIGNED_ALLOC
 void *aligned_alloc(size_t alignment, size_t size);
-#endif
 
-#ifndef HAVE_REALLOCARRAY
 void *reallocarray(void *ptr, size_t nmemb, size_t size);
-#endif
 
 /* MAP_ANONYMOUS — Solaris 7 uses /dev/zero for anonymous mappings.
  * Define the flag value so code compiles, and provide a mmap wrapper

@@ -13,29 +13,19 @@
 extern "C" {
 #endif
 
-#ifndef HAVE_POSIX_OPENPT
 int posix_openpt(int flags);
-#endif
 
-#ifndef HAVE_OPENPTY
 int openpty(int *amaster, int *aslave, char *name,
             const struct termios *termp,
             const struct winsize *winp);
-#endif
 
-#ifndef HAVE_FORKPTY
 pid_t forkpty(int *amaster, char *name,
               const struct termios *termp,
               const struct winsize *winp);
-#endif
 
-#ifndef HAVE_LOGIN_TTY
 int login_tty(int fd);
-#endif
 
-#ifndef HAVE_CFMAKERAW
 void cfmakeraw(struct termios *termios_p);
-#endif
 
 #ifdef __cplusplus
 }

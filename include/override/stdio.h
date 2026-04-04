@@ -24,11 +24,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#ifndef HAVE_VFSCANF
 extern int vfscanf(FILE *, const char *, va_list);
 extern int vscanf(const char *, va_list);
 extern int vsscanf(const char *, const char *, va_list);
-#endif
 #ifdef __cplusplus
 }
 #endif

@@ -14,9 +14,7 @@ extern "C" {
 #endif
 
 /* --- pthread_setname_np --- */
-#ifndef HAVE_PTHREAD_SETNAME_NP
 int pthread_setname_np(pthread_t thread, const char *name);
-#endif
 
 /* --- Per-thread locale (POSIX 2008) --- */
 
@@ -51,13 +49,11 @@ typedef void *locale_t;
                           LC_MONETARY_MASK | LC_NUMERIC_MASK | LC_TIME_MASK)
 #endif
 
-/* Function declarations — only when the system doesn't provide them */
-#ifndef HAVE_USELOCALE
+/* Function declarations */
 locale_t newlocale(int category_mask, const char *locale, locale_t base);
 locale_t uselocale(locale_t newloc);
 void     freelocale(locale_t locobj);
 locale_t duplocale(locale_t locobj);
-#endif
 
 /* --- Additional POSIX.1-2024 stubs --- */
 
@@ -78,16 +74,12 @@ int posix_madvise(void *, size_t, int);
 char *nl_langinfo_l(int, locale_t);
 
 /* pthread_condattr_getclock/setclock (POSIX.1-2001) */
-#ifndef HAVE_PTHREAD_CONDATTR_GETCLOCK
 int pthread_condattr_getclock(const pthread_condattr_t *, int *);
 int pthread_condattr_setclock(pthread_condattr_t *, int);
-#endif
 
 /* pthread_attr_getstack/setstack (POSIX.1-2001) */
-#ifndef HAVE_PTHREAD_ATTR_GETSTACK
 int pthread_attr_getstack(const pthread_attr_t *, void **, size_t *);
 int pthread_attr_setstack(pthread_attr_t *, void *, size_t);
-#endif
 
 #ifdef __cplusplus
 }

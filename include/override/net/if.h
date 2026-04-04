@@ -20,10 +20,8 @@ extern "C" {
 #endif
 
 /* --- RFC 3493 interface index functions --- */
-#ifndef HAVE_IF_NAMETOINDEX
 unsigned int if_nametoindex(const char *ifname);
 char        *if_indextoname(unsigned int ifindex, char *ifname);
-#endif
 
 /* IF_NAMESIZE — POSIX constant for max interface name */
 #ifndef IF_NAMESIZE

@@ -41,53 +41,31 @@ extern "C" {
 #define AT_SYMLINK_FOLLOW    0x400
 #endif
 
-#ifndef HAVE_OPENAT
 int openat(int dirfd, const char *pathname, int flags, ...);
-#endif
 
-#ifndef HAVE_MKDIRAT
 int mkdirat(int dirfd, const char *pathname, mode_t mode);
-#endif
 
-#ifndef HAVE_RENAMEAT
 int renameat(int olddirfd, const char *oldpath,
              int newdirfd, const char *newpath);
-#endif
 
-#ifndef HAVE_UNLINKAT
 int unlinkat(int dirfd, const char *pathname, int flags);
-#endif
 
-#ifndef HAVE_FSTATAT
 int fstatat(int dirfd, const char *pathname,
             struct stat *buf, int flags);
-#endif
 
-#ifndef HAVE_FCHOWNAT
 int fchownat(int dirfd, const char *pathname,
              uid_t owner, gid_t group, int flags);
-#endif
 
-#ifndef HAVE_FCHMODAT
 int fchmodat(int dirfd, const char *pathname, mode_t mode, int flags);
-#endif
 
-#ifndef HAVE_READLINKAT
 ssize_t readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
-#endif
 
-#ifndef HAVE_SYMLINKAT
 int symlinkat(const char *target, int newdirfd, const char *linkpath);
-#endif
 
-#ifndef HAVE_LINKAT
 int linkat(int olddirfd, const char *oldpath,
            int newdirfd, const char *newpath, int flags);
-#endif
 
-#ifndef HAVE_FACCESSAT
 int faccessat(int dirfd, const char *pathname, int mode, int flags);
-#endif
 
 #ifdef __cplusplus
 }

@@ -293,12 +293,8 @@ int  getnameinfo(const struct sockaddr *sa, socklen_t salen,
 #endif /* AI_PASSIVE */
 
 /* --- inet_ntop / inet_pton --- */
-#ifndef HAVE_INET_NTOP
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
-#endif
-#ifndef HAVE_INET_PTON
 int inet_pton(int af, const char *src, void *dst);
-#endif
 
 /* --- getifaddrs --- */
 /*
@@ -328,20 +324,16 @@ struct ifaddrs {
 #endif
 #endif /* _SOLCOMPAT_STRUCT_IFADDRS */
 
-#ifndef HAVE_GETIFADDRS
 int  getifaddrs(struct ifaddrs **ifap);
 void freeifaddrs(struct ifaddrs *ifa);
-#endif
 
 /* --- if_nametoindex / if_indextoname (RFC 3493) --- */
 /*
  * Needed for IPv6 scope IDs and modern socket code.
  * Implementation uses SIOCGIFINDEX/SIOCGIFCONF ioctls.
  */
-#ifndef HAVE_IF_NAMETOINDEX
 unsigned int if_nametoindex(const char *ifname);
 char        *if_indextoname(unsigned int ifindex, char *ifname);
-#endif
 
 /* IF_NAMESIZE — POSIX constant for max interface name length */
 #ifndef IF_NAMESIZE
@@ -360,9 +352,7 @@ char        *if_indextoname(unsigned int ifindex, char *ifname);
 #endif
 
 /* --- accept4 --- */
-#ifndef HAVE_ACCEPT4
 int accept4(int sockfd, struct sockaddr *addr, socklen_t *addrlen, int flags);
-#endif
 
 #ifdef __cplusplus
 }

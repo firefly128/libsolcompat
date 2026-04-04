@@ -42,22 +42,18 @@ int solcompat_clock_gettime(clockid_t clk_id, struct timespec *tp);
 int solcompat_clock_getres(clockid_t clk_id, struct timespec *res);
 #define clock_getres solcompat_clock_getres
 
-#ifndef HAVE_CLOCK_NANOSLEEP
 #ifndef TIMER_ABSTIME
 #define TIMER_ABSTIME 0x1
 #endif
 int clock_nanosleep(clockid_t clk_id, int flags,
                     const struct timespec *request,
                     struct timespec *remain);
-#endif
 
 /*
  * timegm — interpret struct tm as UTC, return time_t.
  * Inverse of gmtime(). Not in Solaris 7 (BSD/GNU extension).
  */
-#ifndef HAVE_TIMEGM
 time_t timegm(struct tm *tm);
-#endif
 
 #ifdef __cplusplus
 }

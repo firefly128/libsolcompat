@@ -24,21 +24,13 @@
 extern "C" {
 #endif
 
-#ifndef HAVE_DAEMON
 int daemon(int nochdir, int noclose);
-#endif
 
-#ifndef HAVE_PIPE2
 int pipe2(int pipefd[2], int flags);
-#endif
 
-#ifndef HAVE_DUP3
 int dup3(int oldfd, int newfd, int flags);
-#endif
 
-#ifndef HAVE_MKOSTEMP
 int mkostemp(char *tmpl, int flags);
-#endif
 
 /*
  * execvpe — execute a program, searching PATH from the provided environment.
@@ -47,9 +39,7 @@ int mkostemp(char *tmpl, int flags);
  * within envp (not the caller's PATH).  Solaris 7 has execve() and execvp()
  * but not execvpe().
  */
-#ifndef HAVE_EXECVPE
 int execvpe(const char *filename, char *const argv[], char *const envp[]);
-#endif
 
 /* posix_spawn attribute flags -- always provide these constants
  * even when HAVE_POSIX_SPAWN is defined (libsolcompat provides the
@@ -64,8 +54,6 @@ int execvpe(const char *filename, char *const argv[], char *const envp[]);
 #endif
 
 /* posix_spawn minimal interface */
-#ifndef HAVE_POSIX_SPAWN
-
 typedef struct {
     short int __flags;
     pid_t     __pgrp;
@@ -107,24 +95,19 @@ int posix_spawn_file_actions_addopen(posix_spawn_file_actions_t *fact,
 int posix_spawn_file_actions_addclose(posix_spawn_file_actions_t *fact, int fildes);
 int posix_spawn_file_actions_adddup2(posix_spawn_file_actions_t *fact,
     int fildes, int newfildes);
-#endif
 
 /*
  * getgrouplist — enumerate a user's group memberships.
  * BSD/POSIX.1-2008 function, not in Solaris 7.
  */
-#ifndef HAVE_GETGROUPLIST
 int getgrouplist(const char *user, gid_t group, gid_t *groups, int *ngroups);
-#endif
 
 /*
  * sem_timedwait — wait on semaphore with timeout.
  * POSIX.1-2001 function, not in Solaris 7 (which only has sem_wait/sem_trywait).
  */
 #include <semaphore.h>
-#ifndef HAVE_SEM_TIMEDWAIT
 int sem_timedwait(sem_t *sem, const struct timespec *abs_timeout);
-#endif
 
 #ifdef __cplusplus
 }
