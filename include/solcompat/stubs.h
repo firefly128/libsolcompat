@@ -78,15 +78,14 @@ int posix_madvise(void *, size_t, int);
 char *nl_langinfo_l(int, locale_t);
 
 /* pthread_condattr_getclock/setclock (POSIX.1-2001) */
-/* Use __restrict__ — C++ doesn't have restrict, GCC accepts __restrict__ in both modes */
 #ifndef HAVE_PTHREAD_CONDATTR_GETCLOCK
-int pthread_condattr_getclock(const pthread_condattr_t *__restrict__, int *__restrict__);
+int pthread_condattr_getclock(const pthread_condattr_t *, int *);
 int pthread_condattr_setclock(pthread_condattr_t *, int);
 #endif
 
 /* pthread_attr_getstack/setstack (POSIX.1-2001) */
 #ifndef HAVE_PTHREAD_ATTR_GETSTACK
-int pthread_attr_getstack(const pthread_attr_t *__restrict__, void **__restrict__, size_t *__restrict__);
+int pthread_attr_getstack(const pthread_attr_t *, void **, size_t *);
 int pthread_attr_setstack(pthread_attr_t *, void *, size_t);
 #endif
 
