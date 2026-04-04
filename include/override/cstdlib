@@ -14,10 +14,27 @@
 #ifndef _SOLCOMPAT_OVERRIDE_CSTDLIB
 #define _SOLCOMPAT_OVERRIDE_CSTDLIB
 
-/* Ensure all C99/POSIX stdlib symbols are declared in :: first */
-#include <stdlib.h>
-
-/* Now let GCC's real <cstdlib> do "using ::atoll;" etc. */
+/*
+ * First let GCC's real <cstdlib> run — it includes the system <stdlib.h>
+ * internally and pulls whatever Solaris 7 provides into namespace std.
+ */
 #include_next <cstdlib>
+
+/*
+ * Now declare the C99/POSIX functions that Solaris 7's stdlib.h lacked.
+ * These go into the global namespace (::), then we pull them into std::.
+ */
+#include <solcompat/stdlib_ext.h>
+
+namespace std {
+    using ::atoll;
+    using ::strtoll;
+    using ::strtoull;
+    using ::strtof;
+    using ::strtold;
+    using ::setenv;
+    using ::unsetenv;
+    using ::mkdtemp;
+}
 
 #endif /* _SOLCOMPAT_OVERRIDE_CSTDLIB */
