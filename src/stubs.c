@@ -163,9 +163,14 @@ sem_timedwait(sem_t *sem, const struct timespec *abs_timeout)
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
+#include <sys/sockio.h>   /* SIOCATMARK on Solaris */
 #include <langinfo.h>
-#include <net/if.h>
+
+/* Solaris 7 net/if.h lacks struct if_nameindex — define it here */
+struct if_nameindex {
+    unsigned int if_index;
+    char        *if_name;
+};
 
 /*
  * sockatmark — test whether socket is at out-of-band mark.
