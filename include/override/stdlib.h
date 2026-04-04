@@ -15,4 +15,17 @@
 /* Add missing stdlib extensions */
 #include <solcompat/stdlib_ext.h>
 
+/*
+ * POSIX.1 declares environ in <unistd.h>, but many programs (and cmake's
+ * feature-detection) expect it in <stdlib.h>.  Provide it here so that
+ * "#include <stdlib.h>" is sufficient.
+ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern char **environ;
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* _SOLCOMPAT_OVERRIDE_STDLIB_H */
