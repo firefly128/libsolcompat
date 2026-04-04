@@ -64,6 +64,12 @@ void *memrchr(const void *s, int c, size_t n);
 char *strsignal(int signum);
 #endif
 
+/* --- strerror_r (GNU-compatible) --- */
+#ifndef HAVE_STRERROR_R
+char *solcompat_strerror_r(int errnum, char *buf, size_t buflen);
+#define strerror_r solcompat_strerror_r
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -323,3 +323,15 @@ strtof(const char *nptr, char **endptr)
 {
     return (float)strtod(nptr, endptr);
 }
+
+/*
+ * strtold — C99 string-to-long-double conversion.
+ * On SPARC Solaris 7, long double is 128-bit quad precision in the ABI,
+ * but GCC's soft-float implementation makes it effectively 64-bit
+ * (same as double). This wrapper is sufficient.
+ */
+long double
+strtold(const char *nptr, char **endptr)
+{
+    return (long double)strtod(nptr, endptr);
+}

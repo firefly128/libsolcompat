@@ -59,6 +59,36 @@ void     freelocale(locale_t locobj);
 locale_t duplocale(locale_t locobj);
 #endif
 
+/* --- Additional POSIX.1-2024 stubs --- */
+
+/* sockatmark (POSIX.1-2001) */
+int sockatmark(int);
+
+/* posix_madvise (POSIX.1-2001, no-op on Solaris 7) */
+int posix_madvise(void *, size_t, int);
+#ifndef POSIX_MADV_NORMAL
+#define POSIX_MADV_NORMAL    0
+#define POSIX_MADV_SEQUENTIAL 1
+#define POSIX_MADV_RANDOM    2
+#define POSIX_MADV_WILLNEED  3
+#define POSIX_MADV_DONTNEED  4
+#endif
+
+/* nl_langinfo_l (POSIX.1-2008) */
+char *nl_langinfo_l(int, locale_t);
+
+/* pthread_condattr_getclock/setclock (POSIX.1-2001) */
+#ifndef HAVE_PTHREAD_CONDATTR_GETCLOCK
+int pthread_condattr_getclock(const pthread_condattr_t *restrict, int *restrict);
+int pthread_condattr_setclock(pthread_condattr_t *, int);
+#endif
+
+/* pthread_attr_getstack/setstack (POSIX.1-2001) */
+#ifndef HAVE_PTHREAD_ATTR_GETSTACK
+int pthread_attr_getstack(const pthread_attr_t *restrict, void **restrict, size_t *restrict);
+int pthread_attr_setstack(pthread_attr_t *, void *, size_t);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

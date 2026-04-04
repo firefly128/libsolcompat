@@ -12,14 +12,35 @@
 
 #include_next <ctype.h>
 
-#ifndef isblank
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef isblank
 extern int isblank(int c);
+#endif
+
+/* POSIX.1-2008 locale-aware character classification */
+#ifndef HAVE_ISALNUM_L
+typedef void *locale_t;  /* forward — real definition in stubs.h */
+extern int isalnum_l(int, locale_t);
+extern int isalpha_l(int, locale_t);
+extern int isblank_l(int, locale_t);
+extern int iscntrl_l(int, locale_t);
+extern int isdigit_l(int, locale_t);
+extern int isgraph_l(int, locale_t);
+extern int islower_l(int, locale_t);
+extern int isprint_l(int, locale_t);
+extern int ispunct_l(int, locale_t);
+extern int isspace_l(int, locale_t);
+extern int isupper_l(int, locale_t);
+extern int isxdigit_l(int, locale_t);
+extern int tolower_l(int, locale_t);
+extern int toupper_l(int, locale_t);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
-#endif /* isblank */
 
 #endif /* _SOLCOMPAT_OVERRIDE_CTYPE_H */

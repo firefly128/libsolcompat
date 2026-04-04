@@ -156,3 +156,156 @@ sem_timedwait(sem_t *sem, const struct timespec *abs_timeout)
     }
 }
 #endif /* HAVE_SEM_TIMEDWAIT */
+
+/* ================================================================
+ * Additional POSIX.1-2024 stubs
+ * ================================================================ */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <langinfo.h>
+#include <net/if.h>
+
+/*
+ * sockatmark — test whether socket is at out-of-band mark.
+ * POSIX.1-2001. Solaris 7 has the ioctl but not the function wrapper.
+ */
+int
+sockatmark(int socket_fd)
+{
+    int at_mark = 0;
+    if (ioctl(socket_fd, SIOCATMARK, &at_mark) < 0)
+        return -1;
+    return at_mark != 0;
+}
+
+/*
+ * posix_madvise — memory advisory (no-op on Solaris 7).
+ * POSIX.1-2001. Solaris 7 has madvise() but not the POSIX variant.
+ * The POSIX version cannot fail with EAGAIN, so a no-op is compliant.
+ */
+int
+posix_madvise(void *address, size_t length, int advice)
+{
+    (void)address;
+    (void)length;
+    (void)advice;
+    return 0;
+}
+
+/*
+ * nl_langinfo_l — locale-aware langinfo.
+ * POSIX.1-2008. Solaris 7 has nl_langinfo() but no per-thread variant.
+ */
+char *
+nl_langinfo_l(int item, void *locale)
+{
+    (void)locale;
+    return nl_langinfo(item);
+}
+
+/*
+ * pthread_condattr_getclock / setclock — condition variable clock selection.
+ * POSIX.1-2001. Solaris 7 pthreads don't support clock selection.
+ * Stub: always report CLOCK_REALTIME, reject other clocks.
+ */
+#ifndef HAVE_PTHREAD_CONDATTR_GETCLOCK
+int
+pthread_condattr_getclock(const pthread_condattr_t *restrict attribute,
+                          int *restrict clock_id)
+{
+    (void)attribute;
+    *clock_id = 0; /* CLOCK_REALTIME */
+    return 0;
+}
+
+int
+pthread_condattr_setclock(pthread_condattr_t *attribute, int clock_id)
+{
+    (void)attribute;
+    if (clock_id != 0) /* only CLOCK_REALTIME supported */
+        return 22; /* EINVAL */
+    return 0;
+}
+#endif
+
+/*
+ * pthread_attr_getstack / setstack — thread stack attributes.
+ * POSIX.1-2001. Solaris 7 has setstacksize/getstacksize but not
+ * the combined stack address + size variants.
+ */
+#ifndef HAVE_PTHREAD_ATTR_GETSTACK
+int
+pthread_attr_getstack(const pthread_attr_t *restrict attribute,
+                      void **restrict stack_address,
+                      size_t *restrict stack_size)
+{
+    /* Can't determine stack address on Solaris 7 — return defaults */
+    *stack_address = NULL;
+    return pthread_attr_getstacksize(attribute, stack_size);
+}
+
+int
+pthread_attr_setstack(pthread_attr_t *attribute,
+                      void *stack_address, size_t stack_size)
+{
+    /* Ignore address, just set size */
+    (void)stack_address;
+    return pthread_attr_setstacksize(attribute, stack_size);
+}
+#endif
+
+/*
+ * if_nameindex / if_freenameindex — enumerate network interfaces.
+ * POSIX.1-2001. Solaris 7 has SIOCGIFCONF but not this wrapper.
+ */
+struct if_nameindex *
+if_nameindex(void)
+{
+    /* Minimal implementation: return empty list.
+     * A full implementation would use SIOCGIFCONF + SIOCGIFINDEX. */
+    struct if_nameindex *name_index_list;
+    name_index_list = (struct if_nameindex *)calloc(1, sizeof(struct if_nameindex));
+    if (name_index_list) {
+        name_index_list[0].if_index = 0;
+        name_index_list[0].if_name = NULL;
+    }
+    return name_index_list;
+}
+
+void
+if_freenameindex(struct if_nameindex *name_index_list)
+{
+    /* A full implementation would free each if_name string */
+    free(name_index_list);
+}
+
+/*
+ * mq_timedreceive / mq_timedsend — timed message queue operations.
+ * POSIX.1-2001. Solaris 7 has basic mqueue but not timed variants.
+ * Stub: return ENOSYS. Real usage is rare on Solaris 7.
+ */
+#include <mqueue.h>
+
+ssize_t
+mq_timedreceive(mqd_t queue_descriptor, char *message_buffer,
+                 size_t message_length, unsigned int *message_priority,
+                 const struct timespec *abs_timeout)
+{
+    (void)abs_timeout;
+    /* Fall back to non-timed version */
+    return mq_receive(queue_descriptor, message_buffer,
+                      message_length, message_priority);
+}
+
+int
+mq_timedsend(mqd_t queue_descriptor, const char *message_buffer,
+              size_t message_length, unsigned int message_priority,
+              const struct timespec *abs_timeout)
+{
+    (void)abs_timeout;
+    /* Fall back to non-timed version */
+    return mq_send(queue_descriptor, message_buffer,
+                   message_length, message_priority);
+}

@@ -15,4 +15,22 @@
 #include <solcompat/snprintf.h>
 #include <solcompat/stdio_ext.h>
 
+/*
+ * C99 variadic scanf functions.
+ * Solaris 7 libc may have these internally but doesn't declare them.
+ * Provide declarations so C99-conformant code compiles.
+ */
+#include <stdarg.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifndef HAVE_VFSCANF
+extern int vfscanf(FILE *restrict, const char *restrict, va_list);
+extern int vscanf(const char *restrict, va_list);
+extern int vsscanf(const char *restrict, const char *restrict, va_list);
+#endif
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* _SOLCOMPAT_OVERRIDE_STDIO_H */
