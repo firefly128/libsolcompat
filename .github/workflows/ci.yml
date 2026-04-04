@@ -36,30 +36,28 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build static library
+        # Use docker create + docker cp instead of bind mounts.
+        # WSL2 Docker Desktop does not reliably flush bind-mount writes
+        # back to the host filesystem (known issue).
         run: |
-          docker run --rm --pull=missing \
-            -v "${{ github.workspace }}:/work" \
+          BUILD_CID=$(docker create \
             -v sparc-build-host_cross-build-cross:/opt/cross:ro \
             -v "$SPARC_BUILD_HOST/sysroot:/opt/sysroot-build:ro" \
             -e PATH=/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
             -w /work \
             ghcr.io/sunstorm-project/sparc-toolchain:latest \
-            make \
+            sh -c 'make \
               CC=sparc-sun-solaris2.7-gcc \
               AR=sparc-sun-solaris2.7-ar \
               RANLIB=sparc-sun-solaris2.7-ranlib \
-              CFLAGS="-O2 --sysroot=/opt/sysroot-build -mcpu=v7 -D__EXTENSIONS__ -Wall -Wextra -Wno-unused-parameter"
-
-      - name: Verify library symbol table
-        run: |
-          docker run --rm --pull=missing \
-            -v "${{ github.workspace }}:/work" \
-            -v sparc-build-host_cross-build-cross:/opt/cross:ro \
-            -e PATH=/opt/cross/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-            -w /work \
-            ghcr.io/sunstorm-project/sparc-toolchain:latest \
-            sh -c 'sparc-sun-solaris2.7-nm libsolcompat.a | grep -c " T " \
-              | xargs -I{} echo "Exported {} text symbols"'
+              CFLAGS="-O2 --sysroot=/opt/sysroot-build -mcpu=v7 -D__EXTENSIONS__ -Wall -Wextra -Wno-unused-parameter" \
+            && sparc-sun-solaris2.7-nm libsolcompat.a | grep -c " T " \
+              | xargs -I{} echo "Exported {} text symbols"')
+          docker cp "${{ github.workspace }}/." "${BUILD_CID}:/work/"
+          docker start -a "${BUILD_CID}"
+          docker cp "${BUILD_CID}:/work/libsolcompat.a" libsolcompat.a
+          docker rm "${BUILD_CID}"
+          ls -la libsolcompat.a
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
