@@ -167,6 +167,17 @@ extern const struct in6_addr in6addr_loopback;
      (((const unsigned char *)(a))[1] & 0x0f) == 0x0e)
 #endif
 
+/* --- IN6_ARE_ADDR_EQUAL (RFC 3493) --- */
+/*
+ * Compares two struct in6_addr for equality.  Not provided by Solaris 7.
+ * Used by Tcl, Python, and other networking code.
+ */
+#ifndef IN6_ARE_ADDR_EQUAL
+#include <string.h>
+#define IN6_ARE_ADDR_EQUAL(a, b) \
+    (memcmp((a), (b), sizeof(struct in6_addr)) == 0)
+#endif
+
 #endif /* !s6_addr */
 
 /* --- IPv6 socket options (IPPROTO_IPV6 level) --- */
